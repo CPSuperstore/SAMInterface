@@ -1,11 +1,12 @@
 import os.path
+import threading
+import tkinter.messagebox as messagebox
 
 import customtkinter
 import numpy as np
 import pygame
 from PIL import Image, ImageOps
 from customtkinter import filedialog
-import tkinter.messagebox as messagebox
 
 import sam_interface.export as export
 import sam_interface.segment_manager
@@ -114,6 +115,7 @@ class SAMInterface(base_interface.BaseInterface):
     def preview_segmentation(self):
         window = customtkinter.CTkToplevel(self)
         window.resizable(False, False)
+        window.title("Segmentation Preview")
 
         image = export.to_flat_image(self.segment_manager)
         image = ImageOps.contain(Image.fromarray(image), (500, 500))
@@ -136,6 +138,16 @@ class SAMInterface(base_interface.BaseInterface):
             export_path.set(filename)
 
         def begin_export():
+            def exporter(
+                    save_mask_tree: bool = True, save_vector_tree: bool = True, save_raster: bool = True,
+                    save_centroids: bool = True, export_detail: bool = True
+            ):
+                export.full_export(
+                    self.segment_manager, path, save_mask_tree, save_vector_tree,
+                    save_raster, save_centroids, export_detail
+                )
+                loading_window.stop()
+
             path = export_path.get()
 
             if path == "":
@@ -149,10 +161,16 @@ class SAMInterface(base_interface.BaseInterface):
                 )
                 return
 
-            export.full_export(
-                self.segment_manager, path,
-                mask_tree.get(), vector_tree.get(), save_raster.get(), save_centroids.get(), export_detail.get(),
+            loading_window = self.get_loading_window(window)
+
+            loading_thread = threading.Thread(
+                target=exporter, args=[
+                    mask_tree.get(), vector_tree.get(), save_raster.get(), save_centroids.get(), export_detail.get()
+                ]
             )
+            loading_thread.start()
+
+            loading_window.start()
 
             messagebox.showinfo(
                 "Export Succeeded",
@@ -162,6 +180,7 @@ class SAMInterface(base_interface.BaseInterface):
         window = customtkinter.CTkToplevel(self)
         window.resizable(False, False)
         window.geometry("500x290")
+        window.title("Segmentation Exporter")
 
         config = dict(sticky='EW', pady=5, padx=10, columnspan=2)
 

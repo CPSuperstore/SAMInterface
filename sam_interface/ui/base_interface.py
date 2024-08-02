@@ -2,6 +2,7 @@ import typing
 
 import customtkinter
 import darkdetect
+import sam_interface.ui.loading_window as loading_window
 
 import sam_interface.ui.widget.pygame_widget as pygame_widget
 
@@ -38,3 +39,6 @@ class BaseInterface(customtkinter.CTk):
 
             self.update_idletasks()
             self.update()
+
+    def get_loading_window(self, master=None) -> loading_window.LoadingWindow:
+        return loading_window.LoadingWindow(self if master is None else master)
