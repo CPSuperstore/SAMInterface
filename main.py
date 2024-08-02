@@ -1,3 +1,5 @@
+import sys
+
 import sam_interface
 import logging
 
@@ -7,10 +9,17 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-# sm = sam_interface.SegmentManager("images/circle_pattern.png")
-# sm.save("tmp.dat")
+if len(sys.argv) == 1:
+    print("Usage:")
+    print("  {} [filename]".format(sys.argv[0]))
+    sys.exit(-1)
+
+sm = sam_interface.SegmentManager(sys.argv[1])
+sm.save("tmp.dat")
 
 sm = sam_interface.SegmentManager.load("tmp.dat")
 i = sam_interface.ui.SAMInterface(sm)
 i.start()
-print("MENU")
+
+# menu = sam_interface.ui.MainMenuInterface()
+# menu.start()
