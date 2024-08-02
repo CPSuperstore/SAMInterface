@@ -46,6 +46,8 @@ class SegmentManager:
         logging.info("Automatically detecting segments...")
         self.auto_detect_masks()
 
+        logging.info("Found {} valid masks".format(len(self.masks)))
+
         self.sam.to(device=self.device)
 
         logging.info("Loading image into SAM predictor...")

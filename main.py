@@ -14,10 +14,11 @@ if len(sys.argv) == 1:
     print("  {} [filename]".format(sys.argv[0]))
     sys.exit(-1)
 
-sm = sam_interface.SegmentManager(sys.argv[1])
-sm.save("tmp.dat")
+# sm = sam_interface.SegmentManager(sys.argv[1])
+# sm.save("tmp.dat")
 
 sm = sam_interface.SegmentManager.load("tmp.dat")
+
 i = sam_interface.ui.SAMInterface(sm)
 i.start()
 

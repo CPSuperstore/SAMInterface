@@ -226,7 +226,7 @@ class SAMInterface(base_interface.BaseInterface):
         ).pack(side=customtkinter.LEFT, padx=10, pady=10)
 
         customtkinter.CTkButton(
-            self, text="Main Menu", command=self.close
+            self, text="Close", command=self.close
         ).pack(side=customtkinter.RIGHT, padx=10, pady=10)
 
     def preview_segmentation(self):

@@ -6,14 +6,17 @@ import sam_interface.segment_manager
 import vector_node
 import sam_interface.get_detail as get_detail
 import segmentation
+import logging
 
 
 def to_flat_image(segment_manager: sam_interface.segment_manager.SegmentManager) -> np.ndarray:
+    logging.info("Generating flat image...")
     result = np.zeros_like(segment_manager.image)
 
     for mask in segment_manager.masks:
         result[mask.T] = np.median(segment_manager.image[mask.T], axis=0)
 
+    logging.info("Flat image ready")
     return result
 
 
@@ -38,8 +41,10 @@ def full_export(
 ):
     def export_process(mt: vector_node.MaskNode, detailed: bool = False):
         suffix = "_detailed" if detailed else ""
+        logging_suffix = " detailed" if detailed else ""
 
         if save_mask_tree:
+            logging.info("Saving{} mask tree...".format(logging_suffix))
             mt.save(os.path.join(export_path, "mask_tree{}.dat".format(suffix)))
 
         height, width, _ = segment_manager.image.shape
@@ -50,12 +55,15 @@ def full_export(
         ])
 
         if save_vector_tree:
+            logging.info("Saving{} polygon tree...".format(logging_suffix))
             polygon_tree.save(os.path.join(export_path, "polygon_tree{}.dat".format(suffix)))
 
         if save_raster:
+            logging.info("Saving{} polygon raster...".format(logging_suffix))
             polygon_tree.to_raster(os.path.join(export_path, "polygon_raster{}.png".format(suffix)))
 
         if save_centroids and not detailed:
+            logging.info("Saving polygon centroids...")
             centroids: np.ndarray = np.array([c.get_centroid() for c in polygon_tree.children])
             np.save(os.path.join(export_path, "centroid_coordinates.npy"), centroids)
 
@@ -63,5 +71,8 @@ def full_export(
     export_process(mask_tree)
 
     if export_detail:
+        logging.info("Sub-segmenting to get detail...")
         get_detail.get_detail(segment_manager.image / 255, mask_tree, segmentation.FloodFillSegmentation(5, 0.05))
         export_process(mask_tree, True)
+
+    logging.info("Export complete")

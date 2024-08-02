@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import scipy.ndimage as ndimage
 
@@ -54,11 +56,21 @@ class FloodFillSegmentation(base_segmentation.BaseSegmentation):
 
         remaining_mask = mask.copy()
 
+        total_pixels = remaining_mask.size
+
+        iteration = 0
         while True:
+            iteration += 1
+
             candidate_seeds = np.where(remaining_mask == 1)
 
             if len(candidate_seeds[0]) == 0:
                 break
+
+            if not self.silent and iteration % 100 == 0:
+                remaining = (len(candidate_seeds[0]) / total_pixels)
+                left = 1 - remaining
+                logging.info("Flood Fill Progress: {:.3f}%".format(left * 100))
 
             seed = (candidate_seeds[0][0], candidate_seeds[1][0])
             fill_mask = self.flood(image, remaining_mask, seed)
