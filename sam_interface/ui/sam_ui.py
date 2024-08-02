@@ -2,10 +2,12 @@ import tkinter as tk
 
 import numpy as np
 import pygame
+from PIL import ImageTk, Image, ImageOps
 
 import sam_interface.segment_manager
 import sam_interface.ui.base_interface as base_interface
 import sam_interface.ui.widget.pygame_widget as pygame_widget
+import sam_interface.export as export
 
 pygame.init()
 
@@ -99,7 +101,19 @@ class SAMInterface(base_interface.BaseInterface):
         tk.Button(self, text="Main Menu", command=self.close).pack(side=tk.RIGHT, padx=10, pady=10)
 
     def preview_segmentation(self):
-        pass
+        window = tk.Toplevel(self)
+        window.resizable(False, False)
+
+        image = export.to_flat_image(self.segment_manager)
+        image = ImageOps.contain(Image.fromarray(image), (500, 500))
+        img = ImageTk.PhotoImage(image)
+
+        panel = tk.Label(window, image=img)
+        panel.pack(side="bottom", fill="both", expand=True)
+
+        window.transient(self)
+        window.grab_set()
+        self.wait_window(window)
 
     def export_segmentation(self):
         pass
