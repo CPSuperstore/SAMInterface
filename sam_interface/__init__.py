@@ -1,1 +1,2 @@
-from sam_interface.ui.sam_ui import start_app as sam_ui
+import sam_interface.ui as ui
+from sam_interface.segment_manager import SegmentManager
