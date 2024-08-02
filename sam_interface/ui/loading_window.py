@@ -1,21 +1,16 @@
-from typing import Optional, Union, Tuple
-
 import customtkinter
 
+import sam_interface.ui.base_top_level as base_top_level
 
-class LoadingWindow(customtkinter.CTkToplevel):
-    def __init__(self, text: str = None, *args, fg_color: Optional[Union[str, Tuple[str, str]]] = None, **kwargs):
-        super().__init__(*args, fg_color=fg_color, **kwargs)
-        self.loading = True
+
+class LoadingWindow(base_top_level.BaseTopLevel):
+    def __init__(self, text: str = None, master=None):
+        super().__init__(master, (300, 100), "Loading...")
 
         if text is None:
             text = "Loading"
 
-        self.title("Loading...")
-        self.resizable(False, False)
-        self.geometry("300x100")
-
-        self.protocol("WM_DELETE_WINDOW", lambda: 0)
+        self.disable_closing()
 
         config = dict(
             sticky='NEWS', pady=5, padx=10
@@ -28,14 +23,12 @@ class LoadingWindow(customtkinter.CTkToplevel):
 
         self.grid_columnconfigure(0, weight=1)
 
-    def stop(self):
-        self.loading = False
-
     def start(self):
         self.transient(self.master)
         self.grab_set()
 
-        while self.loading:
+        self.running = True
+        while self.running:
             self.progress_bar.update()
             self.update_idletasks()
             self.update()

@@ -11,6 +11,7 @@ from customtkinter import filedialog
 import sam_interface.export as export
 import sam_interface.segment_manager
 import sam_interface.ui.base_interface as base_interface
+import sam_interface.ui.base_top_level as base_top_level
 import sam_interface.ui.widget.pygame_widget as pygame_widget
 
 pygame.init()
@@ -91,6 +92,122 @@ class SAMWidget(pygame_widget.PygameWidget):
         pygame.display.update()
 
 
+class ExportInterface(base_top_level.BaseTopLevel):
+    def __init__(self, segment_manager, master=None):
+        super().__init__(master, (500, 290), "Segmentation Exporter")
+
+        config = dict(sticky='EW', pady=5, padx=10, columnspan=2)
+
+        customtkinter.CTkLabel(self, text="Export Segmentation").grid(row=0, column=0, **config)
+
+        self.mask_tree_variable = customtkinter.IntVar(value=1)
+        self.vector_tree_variable = customtkinter.IntVar(value=1)
+        self.save_raster_variable = customtkinter.IntVar(value=1)
+        self.save_centroids_variable = customtkinter.IntVar(value=1)
+        self.export_detail_variable = customtkinter.IntVar(value=1)
+        self.segment_manager = segment_manager
+
+        self.export_path_variable = customtkinter.StringVar()
+
+        customtkinter.CTkCheckBox(
+            self, text='Export Mask Tree', variable=self.mask_tree_variable
+        ).grid(row=1, column=0, **config)
+
+        customtkinter.CTkCheckBox(
+            self, text='Export Vector Tree', variable=self.vector_tree_variable
+        ).grid(row=2, column=0, **config)
+
+        customtkinter.CTkCheckBox(
+            self, text='Export Raster', variable=self.save_raster_variable
+        ).grid(row=3, column=0, **config)
+
+        customtkinter.CTkCheckBox(
+            self, text='Export Polygon Centroids', variable=self.save_centroids_variable
+        ).grid(row=4, column=0, **config)
+
+        customtkinter.CTkCheckBox(
+            self, text='Extract Polygon Detail', variable=self.export_detail_variable
+        ).grid(row=5, column=0, **config)
+
+        customtkinter.CTkButton(
+            self, text='Browse', command=self.select_save_directory
+        ).grid(row=6, column=0, sticky='EW', pady=5, padx=10)
+
+        export_path_textbox = customtkinter.CTkEntry(self, textvariable=self.export_path_variable)
+        export_path_textbox.grid(row=6, column=1, sticky='EW', pady=5, padx=10)
+
+        customtkinter.CTkButton(
+            self, text="Export", command=self.begin_export
+        ).grid(row=7, column=0, **config)
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=6)
+
+    def select_save_directory(self):
+        filename = filedialog.askdirectory()
+
+        if filename == "":
+            return
+
+        self.export_path_variable.set(filename)
+
+    def begin_export(self):
+        path = self.export_path_variable.get()
+
+        if path == "":
+            messagebox.showerror("Validation Error", "You must select an export path to proceed!")
+            return
+
+        if not os.path.isdir(path):
+            messagebox.showerror(
+                "Validation Error",
+                "The provided export path '{}' does not point to an existing directory!".format(path)
+            )
+            return
+
+        loading_window = self.get_loading_window(self)
+
+        loading_thread = threading.Thread(
+            target=self.export, args=[
+                path, loading_window,
+                self.mask_tree_variable.get(), self.vector_tree_variable.get(), self.save_raster_variable.get(),
+                self.save_centroids_variable.get(), self.export_detail_variable.get()
+            ]
+        )
+        loading_thread.start()
+
+        loading_window.start()
+
+        messagebox.showinfo(
+            "Export Succeeded",
+            "Successfully exported all files to '{}'!".format(path)
+        )
+
+    def export(
+            self, path, loading_window, save_mask_tree: bool = True, save_vector_tree: bool = True,
+            save_raster: bool = True, save_centroids: bool = True, export_detail: bool = True
+    ):
+        export.full_export(
+            self.segment_manager, path, save_mask_tree, save_vector_tree,
+            save_raster, save_centroids, export_detail
+        )
+        loading_window.close()
+
+
+class PreviewInterface(base_top_level.BaseTopLevel):
+    def __init__(self, segment_manager, master=None):
+        super().__init__(master, None, "Segmentation Preview")
+
+        self.segment_manager = segment_manager
+
+        image = export.to_flat_image(self.segment_manager)
+        image = ImageOps.contain(Image.fromarray(image), (500, 500))
+        img = customtkinter.CTkImage(light_image=image, dark_image=image, size=(500, 500))
+
+        panel = customtkinter.CTkLabel(self, image=img, text="")
+        panel.pack(side="bottom", fill="both", expand=True)
+
+
 class SAMInterface(base_interface.BaseInterface):
     def __init__(self, segment_manager: sam_interface.segment_manager.SegmentManager):
         super().__init__((800, 500))
@@ -113,122 +230,9 @@ class SAMInterface(base_interface.BaseInterface):
         ).pack(side=customtkinter.RIGHT, padx=10, pady=10)
 
     def preview_segmentation(self):
-        window = customtkinter.CTkToplevel(self)
-        window.resizable(False, False)
-        window.title("Segmentation Preview")
-
-        image = export.to_flat_image(self.segment_manager)
-        image = ImageOps.contain(Image.fromarray(image), (500, 500))
-        img = customtkinter.CTkImage(light_image=image, dark_image=image, size=(500, 500))
-
-        panel = customtkinter.CTkLabel(window, image=img, text="")
-        panel.pack(side="bottom", fill="both", expand=True)
-
-        window.transient(self)
-        window.grab_set()
-        self.wait_window(window)
+        preview = PreviewInterface(self.segment_manager)
+        preview.start()
 
     def export_segmentation(self):
-        def select_save_directory():
-            filename = filedialog.askdirectory()
-
-            if filename == "":
-                return
-
-            export_path.set(filename)
-
-        def begin_export():
-            def exporter(
-                    save_mask_tree: bool = True, save_vector_tree: bool = True, save_raster: bool = True,
-                    save_centroids: bool = True, export_detail: bool = True
-            ):
-                export.full_export(
-                    self.segment_manager, path, save_mask_tree, save_vector_tree,
-                    save_raster, save_centroids, export_detail
-                )
-                loading_window.stop()
-
-            path = export_path.get()
-
-            if path == "":
-                messagebox.showerror("Validation Error", "You must select an export path to proceed!")
-                return
-
-            if not os.path.isdir(path):
-                messagebox.showerror(
-                    "Validation Error",
-                    "The provided export path '{}' does not point to an existing directory!".format(path)
-                )
-                return
-
-            loading_window = self.get_loading_window(window)
-
-            loading_thread = threading.Thread(
-                target=exporter, args=[
-                    mask_tree.get(), vector_tree.get(), save_raster.get(), save_centroids.get(), export_detail.get()
-                ]
-            )
-            loading_thread.start()
-
-            loading_window.start()
-
-            messagebox.showinfo(
-                "Export Succeeded",
-                "Successfully exported all files to '{}'!".format(path)
-            )
-
-        window = customtkinter.CTkToplevel(self)
-        window.resizable(False, False)
-        window.geometry("500x290")
-        window.title("Segmentation Exporter")
-
-        config = dict(sticky='EW', pady=5, padx=10, columnspan=2)
-
-        customtkinter.CTkLabel(window, text="Export Segmentation").grid(row=0, column=0, **config)
-
-        mask_tree = customtkinter.IntVar(value=1)
-        vector_tree = customtkinter.IntVar(value=1)
-        save_raster = customtkinter.IntVar(value=1)
-        save_centroids = customtkinter.IntVar(value=1)
-        export_detail = customtkinter.IntVar(value=1)
-
-        export_path = customtkinter.StringVar()
-
-        customtkinter.CTkCheckBox(
-            window, text='Export Mask Tree', variable=mask_tree
-        ).grid(row=1, column=0, **config)
-
-        customtkinter.CTkCheckBox(
-            window, text='Export Vector Tree', variable=vector_tree
-        ).grid(row=2, column=0, **config)
-
-        customtkinter.CTkCheckBox(
-            window, text='Export Raster', variable=save_raster
-        ).grid(row=3, column=0, **config)
-
-        customtkinter.CTkCheckBox(
-            window, text='Export Polygon Centroids', variable=save_centroids
-        ).grid(row=4, column=0, **config)
-
-        customtkinter.CTkCheckBox(
-            window, text='Extract Polygon Detail', variable=export_detail
-        ).grid(row=5, column=0, **config)
-
-        customtkinter.CTkButton(
-            window, text='Browse', command=select_save_directory
-        ).grid(row=6, column=0, sticky='EW', pady=5, padx=10)
-
-        export_path_textbox = customtkinter.CTkEntry(window, textvariable=export_path)
-        export_path_textbox.grid(row=6, column=1, sticky='EW', pady=5, padx=10)
-
-        customtkinter.CTkButton(
-            window, text="Export", command=begin_export
-        ).grid(row=7, column=0, **config)
-
-        # export_path_textbox.in
-
-        window.grid_columnconfigure(0, weight=1)
-        window.grid_columnconfigure(1, weight=6)
-        window.transient(self)
-        window.grab_set()
-        self.wait_window(window)
+        exporter = ExportInterface(self.segment_manager)
+        exporter.start()
