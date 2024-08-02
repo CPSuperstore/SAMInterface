@@ -11,7 +11,6 @@ pygame.init()
 
 
 class SAMWidget(pygame_widget.PygameWidget):
-
     def __init__(
             self, segment_manager: sam_interface.segment_manager.SegmentManager,
             parent, screen_size: tuple, framerate_cap: int = 60
@@ -20,11 +19,14 @@ class SAMWidget(pygame_widget.PygameWidget):
         self.segment_manager = segment_manager
         self.image = pygame.image.load(segment_manager.image_path).convert()
 
+        self.polygon_overlay = pygame.Surface(self.screen_size, pygame.SRCALPHA)
+
         self.real_image_size = np.array(self.image.get_size())
         self.scale_factor = 1
         self.display_image_pos = np.array([0, 0])
 
         self.center_image()
+        self.update_polygon_list()
 
     def center_image(self):
         width, height = self.image.get_size()
@@ -42,6 +44,17 @@ class SAMWidget(pygame_widget.PygameWidget):
             int((self.screen_height / 2) - (new_height / 2))
         ))
 
+    def update_polygon_list(self):
+        self.polygon_overlay.fill((255, 255, 255, 0))
+
+        for points in self.segment_manager.mask_outlines:
+            points = points * self.scale_factor + self.display_image_pos
+            pygame.draw.polygon(self.polygon_overlay, (255, 0, 255, 64), points)
+
+        for points in self.segment_manager.mask_outlines:
+            points = points * self.scale_factor + self.display_image_pos
+            pygame.draw.lines(self.polygon_overlay, (0, 255, 255), True, points, 1)
+
     def render(self):
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -57,10 +70,18 @@ class SAMWidget(pygame_widget.PygameWidget):
                 ):
                     continue
 
-                print(image_pos)
+                if event.button == pygame.BUTTON_LEFT:
+                    self.segment_manager.add_point(image_pos)
+
+                if event.button == pygame.BUTTON_RIGHT:
+                    self.segment_manager.remove_point(image_pos)
+
+                self.update_polygon_list()
 
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.image, self.display_image_pos)
+        self.screen.blit(self.polygon_overlay, (0, 0))
+
         pygame.display.update()
 
 
@@ -75,6 +96,7 @@ class SAMInterface(base_interface.BaseInterface):
 
         tk.Button(self, text="Preview", command=self.preview_segmentation).pack(side=tk.LEFT, padx=10, pady=10)
         tk.Button(self, text="Export As...", command=self.export_segmentation).pack(side=tk.LEFT, padx=10, pady=10)
+        tk.Button(self, text="Main Menu", command=self.close).pack(side=tk.RIGHT, padx=10, pady=10)
 
     def preview_segmentation(self):
         pass

@@ -13,4 +13,4 @@ logging.basicConfig(
 sm = sam_interface.SegmentManager.load("tmp.dat")
 i = sam_interface.ui.SAMInterface(sm)
 i.start()
-
+print("MENU")
