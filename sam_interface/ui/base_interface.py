@@ -1,19 +1,23 @@
-import tkinter as tk
 import typing
 
+import customtkinter
 import darkdetect
-import sv_ttk
+
 import sam_interface.ui.widget.pygame_widget as pygame_widget
 
+if darkdetect.isDark():
+    customtkinter.set_appearance_mode("dark")
+    customtkinter.set_default_color_theme("dark-blue")
 
-class BaseInterface(tk.Tk):
+
+class BaseInterface(customtkinter.CTk):
     def __init__(self, window_size: tuple, title: str = "Segment Anything Interface"):
         super().__init__()
         self.title(title)
         self.geometry("{}x{}".format(*window_size))
         self.running = False
 
-        sv_ttk.set_theme(darkdetect.theme())
+        # sv_ttk.set_theme(darkdetect.theme())
 
     def close(self):
         self.running = False
