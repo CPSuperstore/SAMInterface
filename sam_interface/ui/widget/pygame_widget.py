@@ -1,4 +1,5 @@
 import os
+import threading
 import tkinter as tk
 import abc
 
@@ -27,6 +28,9 @@ class PygameWidget(tk.Frame, abc.ABC):
         self.delta_t = 0
         self.framerate_cap = framerate_cap
 
+        self.running = False
+        self.render_timer = None
+
     def draw(self):
         self.clock.tick(self.framerate_cap)
         self.fps = self.clock.get_fps()
@@ -36,6 +40,21 @@ class PygameWidget(tk.Frame, abc.ABC):
 
         self.render()
         pygame.display.update()
+
+    def start_rendering(self):
+        self.running = True
+        self._render_loop()
+
+    def stop_rendering(self):
+        self.running = False
+        if self.render_timer:
+            self.render_timer.cancel()
+
+    def _render_loop(self):
+        if self.running:
+            self.draw()
+            self.render_timer = threading.Timer(1.0 / 60.0, self._render_loop)
+            self.render_timer.start()
 
     @abc.abstractmethod
     def render(self):

@@ -21,7 +21,17 @@ class BaseInterface(customtkinter.CTk):
         # sv_ttk.set_theme(darkdetect.theme())
 
     def close(self):
+        pygame_widgets = self.get_pygame_widgets()
+
+        for widget in pygame_widgets:
+            widget.stop_rendering()
+
         self.running = False
+
+    def get_pygame_widgets(self) -> typing.List[pygame_widget.PygameWidget]:
+        return [
+            widget for widget in self.winfo_children() if isinstance(widget, pygame_widget.PygameWidget)
+        ]
 
     def start(self):
         self.running = True
@@ -29,13 +39,14 @@ class BaseInterface(customtkinter.CTk):
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.resizable(False, False)
 
-        pygame_widgets: typing.List[pygame_widget.PygameWidget] = [
-            widget for widget in self.winfo_children() if isinstance(widget, pygame_widget.PygameWidget)
-        ]
+        pygame_widgets = self.get_pygame_widgets()
+
+        for widget in pygame_widgets:
+            widget.start_rendering()
 
         while self.running:
-            for widget in pygame_widgets:
-                widget.draw()
+            # for widget in pygame_widgets:
+            #     widget.draw()
 
             self.update_idletasks()
             self.update()
