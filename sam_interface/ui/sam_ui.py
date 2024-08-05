@@ -209,8 +209,8 @@ class PreviewInterface(base_top_level.BaseTopLevel):
 
 
 class SAMInterface(base_interface.BaseInterface):
-    def __init__(self, segment_manager: sam_interface.segment_manager.SegmentManager):
-        super().__init__((800, 500))
+    def __init__(self, segment_manager: sam_interface.segment_manager.SegmentManager, on_close_callback=None):
+        super().__init__((800, 500), on_close_callback=on_close_callback)
 
         self.sam_widget = SAMWidget(segment_manager, self, (800, 450))
         self.sam_widget.pack()
@@ -226,7 +226,7 @@ class SAMInterface(base_interface.BaseInterface):
         ).pack(side=customtkinter.LEFT, padx=10, pady=10)
 
         customtkinter.CTkButton(
-            self, text="Close", command=self.close
+            self, text="Main Menu", command=self.close
         ).pack(side=customtkinter.RIGHT, padx=10, pady=10)
 
     def preview_segmentation(self):

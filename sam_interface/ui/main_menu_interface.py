@@ -13,8 +13,8 @@ import sam_interface.ui.sam_ui as sam_ui
 
 
 class MainMenuInterface(base_interface.BaseInterface):
-    def __init__(self):
-        super().__init__((500, 200))
+    def __init__(self, on_close_callback=None):
+        super().__init__((500, 200), on_close_callback=on_close_callback)
 
         self.image_path_variable = customtkinter.StringVar()
         self.segment_manager = None
@@ -39,15 +39,23 @@ class MainMenuInterface(base_interface.BaseInterface):
         ).grid(row=2, column=0, **config)
 
     def select_save_directory(self):
-        filename = filedialog.askopenfilename(filetypes=[("Image Files", "*.png *.jpg *.jpeg")])
+        filename = filedialog.askopenfilename(filetypes=[
+            ("Image Files", "*.png *.jpg *.jpeg"),
+            ("Segment Manager Backup", "*.dat")
+        ])
 
         if filename == "":
             return
 
         self.image_path_variable.set(filename)
 
-    def load_image(self, loading_window):
-        self.segment_manager = segment_manager.SegmentManager.load("tmp.dat")
+    def load_image(self, loading_window, path: str):
+        if path.endswith(".dat"):
+            self.segment_manager = segment_manager.SegmentManager.load(path)
+
+        else:
+            self.segment_manager = segment_manager.SegmentManager(path)
+
         loading_window.close()
 
     def start_segmentation(self):
@@ -66,14 +74,14 @@ class MainMenuInterface(base_interface.BaseInterface):
 
         loading_window = self.get_loading_window()
 
-        loading_thread = threading.Thread(target=self.load_image, args=[loading_window])
+        loading_thread = threading.Thread(target=self.load_image, args=[loading_window, path])
         loading_thread.start()
 
         loading_window.start()
 
-        self.destroy()
+        self.withdraw()
 
-        sam = sam_ui.SAMInterface(self.segment_manager)
+        sam = sam_ui.SAMInterface(self.segment_manager, self.deiconify)
         sam.start()
 
-        sys.exit(0)
+        # sys.exit(0)
