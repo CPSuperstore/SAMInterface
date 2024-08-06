@@ -1,42 +1,60 @@
 import os
-import sys
 import threading
-import time
+import tkinter.messagebox as messagebox
 
 import customtkinter
 from customtkinter import filedialog
-import tkinter.messagebox as messagebox
-import sam_interface.segment_manager as segment_manager
+import CTkListbox
 
+import sam_interface.recent_files as recent_files
+import sam_interface.segment_manager as segment_manager
 import sam_interface.ui.base_interface as base_interface
 import sam_interface.ui.sam_ui as sam_ui
 
 
 class MainMenuInterface(base_interface.BaseInterface):
     def __init__(self, on_close_callback=None):
-        super().__init__((500, 200), on_close_callback=on_close_callback)
+        super().__init__((500, 300), on_close_callback=on_close_callback)
 
         self.image_path_variable = customtkinter.StringVar()
         self.segment_manager = None
 
         config = dict(
-            sticky='NEWS', pady=10, padx=10, columnspan=2
+            sticky='NEWS', padx=10, columnspan=2
         )
 
-        customtkinter.CTkLabel(self, text="Segment Anything Model Interface").grid(row=0, column=0, **config)
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=6)
 
+        customtkinter.CTkLabel(self, text="Segment Anything Model Interface").grid(row=0, column=0, **config)
+
+        customtkinter.CTkLabel(self, text="Recent Files").grid(row=1, column=0, **config)
+
+        self.recent_files = CTkListbox.CTkListbox(self, command=self.select_recent_file)
+        self.recent_files.grid(row=2, column=0, **config)
+
+        for i, recent_file in enumerate(recent_files.get_recent_files()):
+            self.recent_files.insert(i, os.path.basename(recent_file))
+
+        customtkinter.CTkLabel(self, text="Open New File").grid(row=3, column=0, **config)
+
         customtkinter.CTkButton(
             self, text='Browse', command=self.select_save_directory
-        ).grid(row=1, column=0, sticky='EW', pady=5, padx=10)
+        ).grid(row=4, column=0, sticky='EW', pady=5, padx=10)
 
         export_path_textbox = customtkinter.CTkEntry(self, textvariable=self.image_path_variable)
-        export_path_textbox.grid(row=1, column=1, sticky='EW', pady=5, padx=10)
+        export_path_textbox.grid(row=4, column=1, sticky='EW', pady=5, padx=10)
 
         customtkinter.CTkButton(
             self, text='Begin Segmentation', command=self.start_segmentation
-        ).grid(row=2, column=0, **config)
+        ).grid(row=5, column=0, **config)
+
+    def select_recent_file(self, _):
+        index = self.recent_files.curselection()
+        path = recent_files.get_recent_files()[index]
+
+        self.image_path_variable.set(path)
+        self.start_segmentation()
 
     def select_save_directory(self):
         filename = filedialog.askopenfilename(filetypes=[
@@ -60,6 +78,7 @@ class MainMenuInterface(base_interface.BaseInterface):
 
     def start_segmentation(self):
         path = self.image_path_variable.get()
+        recent_files.add_recent_file(path)
 
         if path == "":
             messagebox.showerror("Validation Error", "You must select an image to proceed!")
