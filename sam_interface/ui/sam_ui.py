@@ -96,7 +96,7 @@ class ExportInterface(base_top_level.BaseTopLevel):
     def __init__(self, segment_manager, master=None):
         super().__init__(master, (500, 290), "Segmentation Exporter")
 
-        config = dict(sticky='EW', pady=5, padx=10, columnspan=2)
+        config = dict(sticky='EW', pady=5, padx=10, columnspan=3)
 
         customtkinter.CTkLabel(self, text="Export Segmentation").grid(row=0, column=0, **config)
 
@@ -108,6 +108,7 @@ class ExportInterface(base_top_level.BaseTopLevel):
         self.segment_manager = segment_manager
 
         self.export_path_variable = customtkinter.StringVar()
+        self.export_name_variable = customtkinter.StringVar()
 
         customtkinter.CTkCheckBox(
             self, text='Export Mask Tree', variable=self.mask_tree_variable
@@ -134,14 +135,18 @@ class ExportInterface(base_top_level.BaseTopLevel):
         ).grid(row=6, column=0, sticky='EW', pady=5, padx=10)
 
         export_path_textbox = customtkinter.CTkEntry(self, textvariable=self.export_path_variable)
-        export_path_textbox.grid(row=6, column=1, sticky='EW', pady=5, padx=10)
+        export_path_textbox.grid(row=6, column=1, sticky='EW', pady=5, padx=1)
+
+        export_name_textbox = customtkinter.CTkEntry(self, textvariable=self.export_name_variable)
+        export_name_textbox.grid(row=6, column=2, sticky='EW', pady=5, padx=10)
 
         customtkinter.CTkButton(
             self, text="Export", command=self.begin_export
         ).grid(row=7, column=0, **config)
 
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=6)
+        self.grid_columnconfigure(0, weight=2, uniform="Silent_Creme")
+        self.grid_columnconfigure(1, weight=5, uniform="Silent_Creme")
+        self.grid_columnconfigure(2, weight=3, uniform="Silent_Creme")
 
     def select_save_directory(self):
         filename = filedialog.askdirectory()
@@ -153,8 +158,13 @@ class ExportInterface(base_top_level.BaseTopLevel):
 
     def begin_export(self):
         path = self.export_path_variable.get()
+        name = self.export_name_variable.get()
 
         if path == "":
+            messagebox.showerror("Validation Error", "You must select an export path to proceed!")
+            return
+
+        if name == "":
             messagebox.showerror("Validation Error", "You must select an export path to proceed!")
             return
 
@@ -169,7 +179,7 @@ class ExportInterface(base_top_level.BaseTopLevel):
 
         loading_thread = threading.Thread(
             target=self.export, args=[
-                path, loading_window,
+                path, name, loading_window,
                 self.mask_tree_variable.get(), self.vector_tree_variable.get(), self.save_raster_variable.get(),
                 self.save_centroids_variable.get(), self.export_detail_variable.get()
             ]
@@ -184,11 +194,11 @@ class ExportInterface(base_top_level.BaseTopLevel):
         )
 
     def export(
-            self, path, loading_window, save_mask_tree: bool = True, save_vector_tree: bool = True,
+            self, path, name, loading_window, save_mask_tree: bool = True, save_vector_tree: bool = True,
             save_raster: bool = True, save_centroids: bool = True, export_detail: bool = True
     ):
         export.full_export(
-            self.segment_manager, path, save_mask_tree, save_vector_tree,
+            self.segment_manager, path, name, save_mask_tree, save_vector_tree,
             save_raster, save_centroids, export_detail
         )
         loading_window.close()
