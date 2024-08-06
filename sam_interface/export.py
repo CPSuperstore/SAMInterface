@@ -72,7 +72,7 @@ def full_export(
 
     if export_detail:
         logging.info("Sub-segmenting to get detail...")
-        get_detail.get_detail(segment_manager.image / 255, mask_tree, segmentation.FloodFillSegmentation(5, 0.05))
+        get_detail.get_detail(segment_manager.image / 255, mask_tree, segmentation.FloodFillSegmentation(5, 0.05, silent=True))
         export_process(mask_tree, True)
 
     logging.info("Export complete")

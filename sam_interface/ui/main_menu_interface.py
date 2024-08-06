@@ -73,6 +73,7 @@ class MainMenuInterface(base_interface.BaseInterface):
 
         else:
             self.segment_manager = segment_manager.SegmentManager(path)
+            self.segment_manager.save("segment_manager.dat")
 
         loading_window.close()
 

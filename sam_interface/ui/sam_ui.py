@@ -202,7 +202,7 @@ class PreviewInterface(base_top_level.BaseTopLevel):
 
         image = export.to_flat_image(self.segment_manager)
         image = ImageOps.contain(Image.fromarray(image), (500, 500))
-        img = customtkinter.CTkImage(light_image=image, dark_image=image, size=(500, 500))
+        img = customtkinter.CTkImage(light_image=image, dark_image=image, size=image.size)
 
         panel = customtkinter.CTkLabel(self, image=img, text="")
         panel.pack(side="bottom", fill="both", expand=True)

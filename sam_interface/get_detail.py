@@ -1,10 +1,12 @@
 import numpy as np
+import tqdm
+
 import vector_node
 import segmentation
 
 
 def get_detail(image: np.ndarray, parent: vector_node.MaskNode, segmentation_method: segmentation.BaseSegmentation):
-    for child in parent.children:
+    for child in tqdm.tqdm(parent.children):
         remaining_mask = child.mask.copy()
 
         children, _ = segmentation_method.segment_with_remainder(image, child.mask)
