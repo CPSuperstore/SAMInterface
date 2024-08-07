@@ -9,6 +9,7 @@ from PIL import Image, ImageOps
 from customtkinter import filedialog
 
 import sam_interface.export as export
+import sam_interface.preferences as preferences
 import sam_interface.segment_manager
 import sam_interface.ui.base_interface as base_interface
 import sam_interface.ui.base_top_level as base_top_level
@@ -110,6 +111,9 @@ class ExportInterface(base_top_level.BaseTopLevel):
         self.export_path_variable = customtkinter.StringVar()
         self.export_name_variable = customtkinter.StringVar()
 
+        prefs = preferences.get_preferences()
+        self.export_path_variable.set("" if prefs["last_export_dir"] is None else prefs["last_export_dir"])
+
         customtkinter.CTkCheckBox(
             self, text='Export Mask Tree', variable=self.mask_tree_variable
         ).grid(row=1, column=0, **config)
@@ -149,13 +153,18 @@ class ExportInterface(base_top_level.BaseTopLevel):
         self.grid_columnconfigure(2, weight=3, uniform="Silent_Creme")
 
     def select_save_directory(self):
+        prefs = preferences.get_preferences()
+
         filename = filedialog.askdirectory(
-            initialdir=r"C:\School",
-            title='Please select a location to export to'
+            title='Select a directory to export files to',
+            initialdir=prefs["last_export_dir"]
         )
 
         if filename == "":
             return
+
+        prefs["last_export_dir"] = filename
+        preferences.save_preferences(prefs)
 
         self.export_path_variable.set(filename)
 

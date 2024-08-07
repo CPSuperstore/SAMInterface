@@ -39,7 +39,7 @@ class MainMenuInterface(base_interface.BaseInterface):
         customtkinter.CTkLabel(self, text="Open New File").grid(row=3, column=0, **config)
 
         customtkinter.CTkButton(
-            self, text='Browse', command=self.select_save_directory
+            self, text='Browse', command=self.select_import_directory
         ).grid(row=4, column=0, sticky='EW', pady=5, padx=10)
 
         export_path_textbox = customtkinter.CTkEntry(self, textvariable=self.image_path_variable)
@@ -56,14 +56,23 @@ class MainMenuInterface(base_interface.BaseInterface):
         self.image_path_variable.set(path)
         self.start_segmentation()
 
-    def select_save_directory(self):
-        filename = filedialog.askopenfilename(filetypes=[
-            ("Image Files", "*.png *.jpg *.jpeg"),
-            ("Segment Manager Backup", "*.dat")
-        ])
+    def select_import_directory(self):
+        prefs = preferences.get_preferences()
+
+        filename = filedialog.askopenfilename(
+            filetypes=[
+                ("Image Files", "*.png *.jpg *.jpeg"),
+                ("Segment Manager Backup", "*.dat")
+            ],
+            title='Select image to segment',
+            initialdir=prefs["last_import_dir"]
+        )
 
         if filename == "":
             return
+
+        prefs["last_import_dir"] = os.path.dirname(filename)
+        preferences.save_preferences(prefs)
 
         self.image_path_variable.set(filename)
 

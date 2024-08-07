@@ -17,7 +17,7 @@ def get_preferences() -> dict:
         with open(PREFERENCES_FILE) as f:
             loaded = json.loads(f.read())
 
-        for key, value in DEFAULT_PREFERENCES:
+        for key, value in DEFAULT_PREFERENCES.items():
             if key not in loaded:
                 loaded[key] = value
 
