@@ -149,7 +149,10 @@ class ExportInterface(base_top_level.BaseTopLevel):
         self.grid_columnconfigure(2, weight=3, uniform="Silent_Creme")
 
     def select_save_directory(self):
-        filename = filedialog.askdirectory()
+        filename = filedialog.askdirectory(
+            initialdir=r"C:\School",
+            title='Please select a location to export to'
+        )
 
         if filename == "":
             return

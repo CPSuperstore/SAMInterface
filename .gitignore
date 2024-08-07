@@ -164,4 +164,4 @@ checkpoints/
 images/
 *.dat
 output/
-recent_files.json
+preferences.json

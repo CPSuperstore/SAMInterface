@@ -6,10 +6,10 @@ import customtkinter
 from customtkinter import filedialog
 import CTkListbox
 
-import sam_interface.recent_files as recent_files
 import sam_interface.segment_manager as segment_manager
 import sam_interface.ui.base_interface as base_interface
 import sam_interface.ui.sam_ui as sam_ui
+import sam_interface.preferences as preferences
 
 
 class MainMenuInterface(base_interface.BaseInterface):
@@ -33,7 +33,7 @@ class MainMenuInterface(base_interface.BaseInterface):
         self.recent_files = CTkListbox.CTkListbox(self, command=self.select_recent_file)
         self.recent_files.grid(row=2, column=0, **config)
 
-        for i, recent_file in enumerate(recent_files.get_recent_files()):
+        for i, recent_file in enumerate(preferences.get_recent_files()):
             self.recent_files.insert(i, os.path.basename(recent_file))
 
         customtkinter.CTkLabel(self, text="Open New File").grid(row=3, column=0, **config)
@@ -51,7 +51,7 @@ class MainMenuInterface(base_interface.BaseInterface):
 
     def select_recent_file(self, _):
         index = self.recent_files.curselection()
-        path = recent_files.get_recent_files()[index]
+        path = preferences.get_recent_files()[index]
 
         self.image_path_variable.set(path)
         self.start_segmentation()
@@ -79,7 +79,7 @@ class MainMenuInterface(base_interface.BaseInterface):
 
     def start_segmentation(self):
         path = self.image_path_variable.get()
-        recent_files.add_recent_file(path)
+        preferences.add_recent_file(path)
 
         if path == "":
             messagebox.showerror("Validation Error", "You must select an image to proceed!")
@@ -103,5 +103,3 @@ class MainMenuInterface(base_interface.BaseInterface):
 
         sam = sam_ui.SAMInterface(self.segment_manager, self.deiconify)
         sam.start()
-
-        # sys.exit(0)
