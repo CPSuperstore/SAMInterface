@@ -8,7 +8,8 @@ DEFAULT_PREFERENCES = {
     "last_export_dir": None,
     "sam_checkpoint": {
         "model_type": "default",
-        "checkpoint_path": "checkpoints/sam_vit_h_4b8939.pth"
+        "checkpoint_path": "checkpoints/sam_vit_h_4b8939.pth",
+        "auto_detect_masks": True
     }
 }
 

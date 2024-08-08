@@ -16,7 +16,8 @@ import cv2
 class SegmentManager:
     def __init__(
             self, image_path: str, checkpoint_key: str = "default",
-            checkpoint_path: str = "checkpoints/sam_vit_h_4b8939.pth"
+            checkpoint_path: str = "checkpoints/sam_vit_h_4b8939.pth",
+            auto_detect_masks: bool = True
     ):
         self.checkpoint_key = checkpoint_key
         self.checkpoint_path = checkpoint_path
@@ -43,10 +44,14 @@ class SegmentManager:
         logging.info("Loading SAM model from checkpoint '{}'...".format(os.path.abspath(checkpoint_path)))
         self.sam = self.get_sam()
 
-        logging.info("Automatically detecting segments...")
-        self.auto_detect_masks()
+        if auto_detect_masks:
+            logging.info("Automatically detecting segments...")
+            self.auto_detect_masks()
 
-        logging.info("Found {} valid masks".format(len(self.masks)))
+            logging.info("Found {} valid masks".format(len(self.masks)))
+
+        else:
+            logging.info("Skipping automatic segment detection")
 
         self.sam.to(device=self.device)
 
