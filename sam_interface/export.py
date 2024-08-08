@@ -1,4 +1,5 @@
 import os
+import shutil
 
 import numpy as np
 
@@ -82,5 +83,9 @@ def full_export(
             segmentation.FloodFillSegmentation(5, 0.05, silent=True)
         )
         export_process(mask_tree, True)
+
+    logging.info("Copying original image to export directory...")
+    _, file_ext = os.path.splitext(segment_manager.image_path)
+    shutil.copy(segment_manager.image_path, os.path.join(export_path, "{}{}".format(export_name, file_ext)))
 
     logging.info("Export complete")
