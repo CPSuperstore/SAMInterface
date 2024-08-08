@@ -5,7 +5,11 @@ DEFAULT_PREFERENCES = {
     "recent_files": [],
     "max_recent_files": 10,
     "last_import_dir": None,
-    "last_export_dir": None
+    "last_export_dir": None,
+    "sam_checkpoint": {
+        "model_type": "default",
+        "checkpoint_path": "checkpoints/sam_vit_h_4b8939.pth"
+    }
 }
 
 
@@ -17,9 +21,15 @@ def get_preferences() -> dict:
         with open(PREFERENCES_FILE) as f:
             loaded = json.loads(f.read())
 
+        write_out = False
+
         for key, value in DEFAULT_PREFERENCES.items():
             if key not in loaded:
                 loaded[key] = value
+                write_out = True
+
+        if write_out:
+            save_preferences(loaded)
 
         return loaded
 
@@ -49,3 +59,7 @@ def add_recent_file(path: str):
 
 def get_recent_files():
     return get_preferences()["recent_files"]
+
+
+def get_sam_checkpoint():
+    return get_preferences()["sam_checkpoint"]

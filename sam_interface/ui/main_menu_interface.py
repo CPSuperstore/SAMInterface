@@ -77,11 +77,17 @@ class MainMenuInterface(base_interface.BaseInterface):
         self.image_path_variable.set(filename)
 
     def load_image(self, loading_window, path: str):
+        sam_checkpoint = preferences.get_preferences()
+
         if path.endswith(".dat"):
             self.segment_manager = segment_manager.SegmentManager.load(path)
 
         else:
-            self.segment_manager = segment_manager.SegmentManager(path)
+            self.segment_manager = segment_manager.SegmentManager(
+                path,
+                checkpoint_key=sam_checkpoint["model_type"],
+                checkpoint_path=sam_checkpoint["checkpoint_path"]
+            )
             self.segment_manager.save("segment_manager.dat")
 
         loading_window.close()
