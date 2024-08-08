@@ -31,8 +31,12 @@ class BaseSegmentation(abc.ABC):
         self.min_area = min_area
         self.silent = silent
 
-    def segment(self, image: np.ndarray, mask: np.ndarray = None) -> typing.List[np.ndarray]:
-        image = color_stretch(image, mask)
+    def segment(
+            self, image: np.ndarray, mask: np.ndarray = None, stretch_colors: bool = False
+    ) -> typing.List[np.ndarray]:
+        if stretch_colors:
+            image = color_stretch(image, mask)
+
         return self._segment(image, mask)
 
     def segment_with_remainder(
