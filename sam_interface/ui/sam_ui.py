@@ -95,7 +95,7 @@ class SAMWidget(pygame_widget.PygameWidget):
 
 class ExportInterface(base_top_level.BaseTopLevel):
     def __init__(self, segment_manager, master=None):
-        super().__init__(master, (500, 290), "Segmentation Exporter")
+        super().__init__(master, (500, 415), "Segmentation Exporter")
 
         config = dict(sticky='EW', pady=5, padx=10, columnspan=3)
 
@@ -106,6 +106,8 @@ class ExportInterface(base_top_level.BaseTopLevel):
         self.save_raster_variable = customtkinter.IntVar(value=1)
         self.save_centroids_variable = customtkinter.IntVar(value=1)
         self.export_detail_variable = customtkinter.IntVar(value=1)
+        self.min_size_variable = customtkinter.IntVar(value=5)
+        self.threshold_variable = customtkinter.DoubleVar(value=0.05)
         self.segment_manager = segment_manager
 
         self.export_path_variable = customtkinter.StringVar()
@@ -144,13 +146,44 @@ class ExportInterface(base_top_level.BaseTopLevel):
         export_name_textbox = customtkinter.CTkEntry(self, textvariable=self.export_name_variable)
         export_name_textbox.grid(row=6, column=2, sticky='EW', pady=5, padx=10)
 
+        customtkinter.CTkLabel(self, text="Flood Fill Settings (Polygon Detail Only)").grid(row=7, column=0, **config)
+
+        self.min_area_label = customtkinter.CTkLabel(self, text="Loading...")
+        self.min_area_label.grid(row=8, column=0)
+
+        customtkinter.CTkSlider(
+            self, from_=0, to=100, number_of_steps=100, variable=self.min_size_variable,
+            command=self.update_min_area_label
+        ).grid(row=8, column=1, columnspan=2, sticky='EW', pady=5, padx=10)
+
+        self.threshold_label = customtkinter.CTkLabel(self, text="Loading...")
+        self.threshold_label.grid(row=9, column=0)
+
+        customtkinter.CTkSlider(
+            self, from_=0, to=1, variable=self.threshold_variable,
+            command=self.update_threshold
+        ).grid(row=9, column=1, columnspan=2, sticky='EW', pady=5, padx=10)
+
+        customtkinter.CTkLabel(
+            self, text="A higher threshold will result in less segments\n0% will include exact colors only"
+        ).grid(row=10, column=0, columnspan=3, sticky='EW', pady=0, padx=10)
+
         customtkinter.CTkButton(
             self, text="Export", command=self.begin_export
-        ).grid(row=7, column=0, **config)
+        ).grid(row=11, column=0, **config)
 
         self.grid_columnconfigure(0, weight=2, uniform="Silent_Creme")
         self.grid_columnconfigure(1, weight=5, uniform="Silent_Creme")
         self.grid_columnconfigure(2, weight=3, uniform="Silent_Creme")
+
+        self.update_min_area_label()
+        self.update_threshold()
+
+    def update_min_area_label(self, *_):
+        self.min_area_label.configure(text="Min Area ({})".format(int(self.min_size_variable.get())))
+
+    def update_threshold(self, *_):
+        self.threshold_label.configure(text="Threshold ({}%)".format(int(self.threshold_variable.get() * 100)))
 
     def select_save_directory(self):
         prefs = preferences.get_preferences()
@@ -193,7 +226,8 @@ class ExportInterface(base_top_level.BaseTopLevel):
             target=self.export, args=[
                 path, name, loading_window,
                 self.mask_tree_variable.get(), self.vector_tree_variable.get(), self.save_raster_variable.get(),
-                self.save_centroids_variable.get(), self.export_detail_variable.get()
+                self.save_centroids_variable.get(), self.export_detail_variable.get(), self.min_size_variable.get(),
+                self.threshold_variable.get()
             ]
         )
         loading_thread.start()
@@ -207,11 +241,12 @@ class ExportInterface(base_top_level.BaseTopLevel):
 
     def export(
             self, path, name, loading_window, save_mask_tree: bool = True, save_vector_tree: bool = True,
-            save_raster: bool = True, save_centroids: bool = True, export_detail: bool = True
+            save_raster: bool = True, save_centroids: bool = True, export_detail: bool = True, min_area: int = 5,
+            tolerance: float = 0.05
     ):
         export.full_export(
             self.segment_manager, path, name, save_mask_tree, save_vector_tree,
-            save_raster, save_centroids, export_detail
+            save_raster, save_centroids, export_detail, min_area, tolerance
         )
         loading_window.close()
 

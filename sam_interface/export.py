@@ -38,7 +38,7 @@ def to_mask_node(segment_manager: sam_interface.segment_manager.SegmentManager) 
 def full_export(
         segment_manager: sam_interface.segment_manager.SegmentManager, export_path: str, export_name: str,
         save_mask_tree: bool = True, save_vector_tree: bool = True, save_raster: bool = True,
-        save_centroids: bool = True, export_detail: bool = True
+        save_centroids: bool = True, export_detail: bool = True, min_area: int = 5, tolerance: float = 0.05
 ):
     def export_process(mt: vector_node.MaskNode, detailed: bool = False):
         suffix = "_detailed" if detailed else ""
@@ -80,7 +80,7 @@ def full_export(
         logging.info("Sub-segmenting to get detail...")
         get_detail.get_detail(
             segment_manager.image / 255, mask_tree,
-            segmentation.FloodFillSegmentation(5, 0.05, silent=True)
+            segmentation.FloodFillSegmentation(min_area, tolerance, silent=True)
         )
         export_process(mask_tree, True)
 
