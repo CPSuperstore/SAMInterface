@@ -111,7 +111,9 @@ class ExportInterface(base_top_level.BaseTopLevel):
         self.segment_manager = segment_manager
 
         self.export_path_variable = customtkinter.StringVar()
-        self.export_name_variable = customtkinter.StringVar()
+        self.export_name_variable = customtkinter.StringVar(
+            value=os.path.splitext(os.path.basename(self.segment_manager.image_path))[0]
+        )
 
         prefs = preferences.get_preferences()
         self.export_path_variable.set("" if prefs["last_export_dir"] is None else prefs["last_export_dir"])
