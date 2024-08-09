@@ -32,5 +32,5 @@ class BaseTopLevel(customtkinter.CTkToplevel, abc.ABC):
     def on_update(self):
         pass
 
-    def get_loading_window(self, master=None, text: str = None) -> 'loading_window.LoadingWindow':
-        return self.master.get_loading_window(master, text)
+    def get_loading_window(self, master=None, text: str = None, cancel_button: bool = False) -> 'loading_window.LoadingWindow':
+        return self.master.get_loading_window(master, text, cancel_button=cancel_button)

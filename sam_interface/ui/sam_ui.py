@@ -222,7 +222,7 @@ class ExportInterface(base_top_level.BaseTopLevel):
             )
             return
 
-        loading_window = self.get_loading_window(self)
+        loading_window = self.get_loading_window(self, cancel_button=True)
 
         loading_thread = threading.Thread(
             target=self.export, args=[
@@ -230,16 +230,16 @@ class ExportInterface(base_top_level.BaseTopLevel):
                 self.mask_tree_variable.get(), self.vector_tree_variable.get(), self.save_raster_variable.get(),
                 self.save_centroids_variable.get(), self.export_detail_variable.get(), self.min_size_variable.get(),
                 self.threshold_variable.get()
-            ]
+            ], daemon=True
         )
         loading_thread.start()
-
         loading_window.start()
 
-        messagebox.showinfo(
-            "Export Succeeded",
-            "Successfully exported all files to '{}'!".format(path)
-        )
+        if not loading_window.canceled:
+            messagebox.showinfo(
+                "Export Succeeded",
+                "Successfully exported all files to '{}'!".format(path)
+            )
 
     def export(
             self, path, name, loading_window, save_mask_tree: bool = True, save_vector_tree: bool = True,

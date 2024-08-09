@@ -58,5 +58,5 @@ class BaseInterface(customtkinter.CTk):
             self.update_idletasks()
             self.update()
 
-    def get_loading_window(self, master=None, text: str = None) -> loading_window.LoadingWindow:
-        return loading_window.LoadingWindow(text, self if master is None else master)
+    def get_loading_window(self, master=None, text: str = None, cancel_button: bool = False) -> loading_window.LoadingWindow:
+        return loading_window.LoadingWindow(text, self if master is None else master, cancel_button=cancel_button)
