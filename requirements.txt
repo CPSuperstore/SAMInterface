@@ -1,0 +1,14 @@
+opencv-python~=4.8.1.78
+matplotlib~=3.7.3
+numpy~=1.25.2
+shapely~=2.0.2
+scipy~=1.11.3
+Pillow~=10.0.1
+svgwrite~=1.4.3
+tqdm~=4.66.4
+future~=1.0.0
+pygame~=2.5.2
+customtkinter~=5.2.2
+darkdetect~=0.8.0
+CTkListbox~=1.4
+torch~=2.0.1+cu117
