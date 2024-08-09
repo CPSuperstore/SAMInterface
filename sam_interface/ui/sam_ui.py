@@ -1,6 +1,7 @@
 import os.path
 import threading
 import tkinter.messagebox as messagebox
+import traceback
 
 import customtkinter
 import numpy as np
@@ -181,6 +182,8 @@ class ExportInterface(base_top_level.BaseTopLevel):
         self.update_min_area_label()
         self.update_threshold()
 
+        self.export_error = False
+
     def update_min_area_label(self, *_):
         self.min_area_label.configure(text="Min Area ({})".format(int(self.min_size_variable.get())))
 
@@ -235,7 +238,15 @@ class ExportInterface(base_top_level.BaseTopLevel):
         loading_thread.start()
         loading_window.start()
 
-        if not loading_window.canceled:
+        if self.export_error:
+            messagebox.showerror(
+                "Export Failed!",
+                "Unhandled exception encountered during export process\n"
+                "See console for details"
+            )
+            self.export_error = False
+
+        elif not loading_window.canceled:
             messagebox.showinfo(
                 "Export Succeeded",
                 "Successfully exported all files to '{}'!".format(path)
@@ -246,10 +257,16 @@ class ExportInterface(base_top_level.BaseTopLevel):
             save_raster: bool = True, save_centroids: bool = True, export_detail: bool = True, min_area: int = 5,
             tolerance: float = 0.05
     ):
-        export.full_export(
-            self.segment_manager, path, name, save_mask_tree, save_vector_tree,
-            save_raster, save_centroids, export_detail, min_area, tolerance
-        )
+        try:
+            export.full_export(
+                self.segment_manager, path, name, save_mask_tree, save_vector_tree,
+                save_raster, save_centroids, export_detail, min_area, tolerance
+            )
+
+        except Exception:
+            traceback.print_exc()
+            self.export_error = True
+
         loading_window.close()
 
 
