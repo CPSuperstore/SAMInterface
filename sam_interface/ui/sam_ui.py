@@ -1,3 +1,4 @@
+import logging
 import os.path
 import threading
 import tkinter.messagebox as messagebox
@@ -302,8 +303,32 @@ class SAMInterface(base_interface.BaseInterface):
         ).pack(side=customtkinter.LEFT, padx=10, pady=10)
 
         customtkinter.CTkButton(
+            self, text="Save As...", command=self.save_as
+        ).pack(side=customtkinter.LEFT, padx=10, pady=10)
+
+        customtkinter.CTkButton(
             self, text="Main Menu", command=self.close
         ).pack(side=customtkinter.RIGHT, padx=10, pady=10)
+
+    def save_as(self):
+        path = filedialog.asksaveasfilename(
+            confirmoverwrite=True, defaultextension=".dat", filetypes=[
+                ("Segment Manager Backup", "*.dat")
+            ], title="Save Segmentation State"
+        )
+
+        if path == "":
+            return
+
+        logging.info("Saving state to '{}'...".format(path))
+        self.segment_manager.save(path)
+
+        logging.info("Save successful")
+
+        messagebox.showinfo(
+            "Save Successful",
+            "Successfully saved segmentation manager to '{}'".format(path)
+        )
 
     def preview_segmentation(self):
         preview = PreviewInterface(self.segment_manager)

@@ -89,7 +89,6 @@ class MainMenuInterface(base_interface.BaseInterface):
                 checkpoint_path=sam_checkpoint["checkpoint_path"],
                 auto_detect_masks=sam_checkpoint.get("auto_detect_masks", True)
             )
-            self.segment_manager.save("segment_manager.dat")
 
         loading_window.close()
 
