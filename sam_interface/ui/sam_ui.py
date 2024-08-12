@@ -357,6 +357,9 @@ class SAMInterface(base_interface.BaseInterface):
         logging.info("Saving state to '{}'...".format(path))
         self.segment_manager.save(path)
 
+        logging.info("Adding path to list of recent files...")
+        preferences.add_recent_file(path)
+
         logging.info("Save successful")
 
         messagebox.showinfo(
