@@ -83,3 +83,19 @@ class MaskNode(base_node.BaseNode):
 
     def is_touching(self, mask: np.ndarray):
         return np.logical_and(self.dilate(1), mask).sum() > 0
+
+    def color_to_int(self, scale: float = 255) -> np.ndarray:
+        return (self.color * scale).astype(int)
+
+    def to_dict(self) -> dict:
+        result = {
+            "mask": self.mask.tolist(),
+            "filled_mask": self.filled_mask.tolist(),
+            "children": [],
+            "color": self.color_to_int().tolist()
+        }
+
+        for child in self.children:
+            result["children"].append(child.to_dict())
+
+        return result

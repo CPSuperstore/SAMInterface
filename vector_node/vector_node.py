@@ -370,3 +370,15 @@ class VectorNode(base_node.BaseNode):
             counts = counts.astype(np.float32) / len(self.children)
 
         return unique, counts
+
+    def to_dict(self) -> dict:
+        result = {
+            "coordinates": self.exterior.tolist(),
+            "children": [],
+            "color": self.color_to_int().tolist()
+        }
+
+        for child in self.children:
+            result["children"].append(child.to_dict())
+
+        return result

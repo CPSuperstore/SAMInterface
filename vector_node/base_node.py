@@ -1,5 +1,6 @@
 import abc
 import copy
+import json
 import pickle
 import collections
 import typing
@@ -83,3 +84,18 @@ class BaseNode(abc.ABC):
             child.level = self.level + 1
 
         self.children.extend(children)
+
+    def to_dict(self) -> dict:
+        pass
+
+    def to_json_string(self) -> str:
+        structure_data = self.to_dict()
+
+        return json.dumps(dict(
+            objects=structure_data,
+            version=1
+        ))
+
+    def to_json_file(self, filename: str):
+        with open(filename, 'w') as f:
+            f.write(self.to_json_string())
