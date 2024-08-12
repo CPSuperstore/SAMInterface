@@ -29,7 +29,6 @@ if __name__ == '__main__':
         else:
             logging.info("Loading segment manager on image '{}'...".format(os.path.abspath(filename)))
             sm = sam_interface.SegmentManager(sys.argv[1])
-            sm.save("segment_manager.dat")
 
         logging.info("Loading complete. Starting interface...")
         interface = sam_interface.ui.SAMInterface(sm)

@@ -17,7 +17,7 @@ class SegmentManager:
     def __init__(
             self, image_path: str, checkpoint_key: str = "default",
             checkpoint_path: str = "checkpoints/sam_vit_h_4b8939.pth",
-            auto_detect_masks: bool = True
+            auto_detect_masks: bool = True, load_interactive_segmentation: bool = True
     ):
         self.checkpoint_key = checkpoint_key
         self.checkpoint_path = checkpoint_path
@@ -53,11 +53,15 @@ class SegmentManager:
         else:
             logging.info("Skipping automatic segment detection")
 
-        self.sam.to(device=self.device)
+        if load_interactive_segmentation:
+            self.sam.to(device=self.device)
 
-        logging.info("Loading image into SAM predictor...")
-        self.predictor = SamPredictor(self.sam)
-        self.predictor.set_image(self.image)
+            logging.info("Loading image into SAM predictor...")
+            self.predictor = SamPredictor(self.sam)
+            self.predictor.set_image(self.image)
+
+        else:
+            self.predictor = None
 
     def get_sam(self):
         return sam_model_registry[self.checkpoint_key](checkpoint=self.checkpoint_path)
@@ -110,6 +114,12 @@ class SegmentManager:
         return True
 
     def add_point(self, point):
+        if self.predictor is None:
+            raise ValueError(
+                "Constructor parameter 'load_interactive_segmentation' is set to False, "
+                "so interactive segmentation is not possible!"
+            )
+
         masks, scores, _ = self.predictor.predict(
             point_coords=np.array([point]),
             point_labels=np.array([1]),
