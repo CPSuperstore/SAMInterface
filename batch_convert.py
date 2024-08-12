@@ -14,10 +14,6 @@ logging.basicConfig(
 
 
 def process_image(path: str, output_dir: str):
-    if not os.path.isfile(path):
-        logging.fatal("Specified file '{}' does not exist!".format(path))
-        return
-
     if path.endswith(".dat"):
         logging.info("Loading segment manager backup from file '{}'...".format(os.path.abspath(path)))
         segment_manager = sam_interface.SegmentManager.load(path)
@@ -58,10 +54,26 @@ def process_image(path: str, output_dir: str):
 
 
 if __name__ == '__main__':
-    batch_list = sys.argv[2:]
-    batch_size = len(batch_list)
+    final_file_list = []
 
-    for i, image_path in enumerate(batch_list):
+    for name in sys.argv[2:]:
+        if os.path.isdir(name):
+            for child in os.listdir(name):
+                child_path = os.path.join(name, child)
+
+                if os.path.isfile(child_path):
+                    final_file_list.append(child_path)
+
+        elif os.path.isfile(name):
+            final_file_list.append(name)
+
+        else:
+            logging.error("Specified file '{}' does not exist!".format(name))
+
+    batch_size = len(final_file_list)
+    logging.info("Found {} files to convert...".format(batch_size))
+
+    for i, image_path in enumerate(final_file_list):
         logging.info("Processing file '{}' ({} of {})".format(
             os.path.abspath(image_path), i + 1, batch_size
         ))
