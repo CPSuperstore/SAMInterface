@@ -97,7 +97,7 @@ class SAMWidget(pygame_widget.PygameWidget):
 
 class ExportInterface(base_top_level.BaseTopLevel):
     def __init__(self, segment_manager, master=None):
-        super().__init__(master, (500, 415), "Segmentation Exporter")
+        super().__init__(master, (500, 575), "Segmentation Exporter")
 
         config = dict(sticky='EW', pady=5, padx=10, columnspan=3)
 
@@ -107,7 +107,9 @@ class ExportInterface(base_top_level.BaseTopLevel):
         self.vector_tree_variable = customtkinter.IntVar(value=1)
         self.save_raster_variable = customtkinter.IntVar(value=1)
         self.save_centroids_variable = customtkinter.IntVar(value=1)
-        self.export_detail_variable = customtkinter.IntVar(value=1)
+        self.detail_mask_tree_variable = customtkinter.IntVar(value=1)
+        self.detail_polygon_tree_variable = customtkinter.IntVar(value=1)
+        self.detail_raster_variable = customtkinter.IntVar(value=1)
         self.min_size_variable = customtkinter.IntVar(value=5)
         self.threshold_variable = customtkinter.DoubleVar(value=0.05)
         self.segment_manager = segment_manager
@@ -137,44 +139,52 @@ class ExportInterface(base_top_level.BaseTopLevel):
         ).grid(row=4, column=0, **config)
 
         customtkinter.CTkCheckBox(
-            self, text='Extract Polygon Detail', variable=self.export_detail_variable
+            self, text='Export Detailed Mask Tree', variable=self.detail_mask_tree_variable
         ).grid(row=5, column=0, **config)
+
+        customtkinter.CTkCheckBox(
+            self, text='Export Detailed Polygon Tree', variable=self.detail_polygon_tree_variable
+        ).grid(row=6, column=0, **config)
+
+        customtkinter.CTkCheckBox(
+            self, text='Export Detailed Raster', variable=self.detail_raster_variable
+        ).grid(row=7, column=0, **config)
 
         customtkinter.CTkButton(
             self, text='Browse', command=self.select_save_directory
-        ).grid(row=6, column=0, sticky='EW', pady=5, padx=10)
+        ).grid(row=8, column=0, sticky='EW', pady=5, padx=10)
 
         export_path_textbox = customtkinter.CTkEntry(self, textvariable=self.export_path_variable)
-        export_path_textbox.grid(row=6, column=1, sticky='EW', pady=5, padx=1)
+        export_path_textbox.grid(row=8, column=1, sticky='EW', pady=5, padx=1)
 
         export_name_textbox = customtkinter.CTkEntry(self, textvariable=self.export_name_variable)
-        export_name_textbox.grid(row=6, column=2, sticky='EW', pady=5, padx=10)
+        export_name_textbox.grid(row=8, column=2, sticky='EW', pady=5, padx=10)
 
-        customtkinter.CTkLabel(self, text="Flood Fill Settings (Polygon Detail Only)").grid(row=7, column=0, **config)
+        customtkinter.CTkLabel(self, text="Flood Fill Settings (Polygon Detail Only)").grid(row=9, column=0, **config)
 
         self.min_area_label = customtkinter.CTkLabel(self, text="Loading...")
-        self.min_area_label.grid(row=8, column=0)
+        self.min_area_label.grid(row=10, column=0)
 
         customtkinter.CTkSlider(
             self, from_=0, to=100, number_of_steps=100, variable=self.min_size_variable,
             command=self.update_min_area_label
-        ).grid(row=8, column=1, columnspan=2, sticky='EW', pady=5, padx=10)
+        ).grid(row=10, column=1, columnspan=2, sticky='EW', pady=5, padx=10)
 
         self.threshold_label = customtkinter.CTkLabel(self, text="Loading...")
-        self.threshold_label.grid(row=9, column=0)
+        self.threshold_label.grid(row=11, column=0)
 
         customtkinter.CTkSlider(
             self, from_=0, to=1, variable=self.threshold_variable,
             command=self.update_threshold
-        ).grid(row=9, column=1, columnspan=2, sticky='EW', pady=5, padx=10)
+        ).grid(row=11, column=1, columnspan=2, sticky='EW', pady=5, padx=10)
 
         customtkinter.CTkLabel(
             self, text="A higher threshold will result in less segments\n0% will include exact colors only"
-        ).grid(row=10, column=0, columnspan=3, sticky='EW', pady=0, padx=10)
+        ).grid(row=12, column=0, columnspan=3, sticky='EW', pady=0, padx=10)
 
         customtkinter.CTkButton(
             self, text="Export", command=self.begin_export
-        ).grid(row=11, column=0, **config)
+        ).grid(row=13, column=0, **config)
 
         self.grid_columnconfigure(0, weight=2, uniform="Silent_Creme")
         self.grid_columnconfigure(1, weight=5, uniform="Silent_Creme")
@@ -232,7 +242,11 @@ class ExportInterface(base_top_level.BaseTopLevel):
             target=self.export, args=[
                 path, name, loading_window,
                 self.mask_tree_variable.get(), self.vector_tree_variable.get(), self.save_raster_variable.get(),
-                self.save_centroids_variable.get(), self.export_detail_variable.get(), self.min_size_variable.get(),
+                self.save_centroids_variable.get(),
+                self.detail_mask_tree_variable.get(),
+                self.detail_polygon_tree_variable.get(),
+                self.detail_raster_variable.get(),
+                self.min_size_variable.get(),
                 self.threshold_variable.get()
             ], daemon=True
         )
@@ -255,13 +269,16 @@ class ExportInterface(base_top_level.BaseTopLevel):
 
     def export(
             self, path, name, loading_window, save_mask_tree: bool = True, save_vector_tree: bool = True,
-            save_raster: bool = True, save_centroids: bool = True, export_detail: bool = True, min_area: int = 5,
+            save_raster: bool = True, save_centroids: bool = True,
+            save_detail_mask_tree: bool = True, save_detail_vector_tree: bool = True,
+            save_detail_raster: bool = True, min_area: int = 5,
             tolerance: float = 0.05
     ):
         try:
             export.full_export(
                 self.segment_manager, path, name, save_mask_tree, save_vector_tree,
-                save_raster, save_centroids, export_detail, min_area, tolerance
+                save_raster, save_centroids, save_detail_mask_tree, save_detail_vector_tree, save_detail_raster,
+                min_area, tolerance
             )
 
         except Exception:

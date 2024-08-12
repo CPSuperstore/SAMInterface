@@ -39,51 +39,65 @@ def to_mask_node(segment_manager: sam_interface.segment_manager.SegmentManager) 
 def full_export(
         segment_manager: sam_interface.segment_manager.SegmentManager, export_path: str, export_name: str,
         save_mask_tree: bool = True, save_vector_tree: bool = True, save_raster: bool = True,
-        save_centroids: bool = True, export_detail: bool = True, min_area: int = 5, tolerance: float = 0.05
+        save_centroids: bool = True, save_detail_mask_tree: bool = True, save_detail_vector_tree: bool = True,
+        save_detail_raster: bool = True, min_area: int = 5, tolerance: float = 0.05
 ):
-    def export_process(mt: vector_node.MaskNode, detailed: bool = False):
-        suffix = "_detailed" if detailed else ""
-        logging_suffix = " detailed" if detailed else ""
-
-        if save_mask_tree:
-            logging.info("Saving{} mask tree...".format(logging_suffix))
-            mt.save(os.path.join(export_path, "{}_mask_tree{}.dat".format(export_name, suffix)))
-
-        height, width, _ = segment_manager.image.shape
-
-        polygon_tree = mt.to_vector_node()
-        polygon_tree.exterior = np.array([
-            [0, 0], [0, width], [height, width], [height, 0]
-        ])
-
-        if save_vector_tree:
-            logging.info("Saving{} polygon tree...".format(logging_suffix))
-            polygon_tree.save(os.path.join(export_path, "{}_polygon_tree{}.dat".format(export_name, suffix)))
-
-        if save_raster:
-            logging.info("Saving{} polygon raster...".format(logging_suffix))
-            polygon_tree.to_raster(os.path.join(export_path, "{}_polygon_raster{}.png".format(export_name, suffix)))
-
-        if save_centroids and not detailed:
-            logging.info("Saving polygon centroids...")
-            centroids: np.ndarray = np.array([c.get_centroid() for c in polygon_tree.children])
-            np.save(os.path.join(export_path, "{}_centroid_coordinates.npy".format(export_name)), centroids)
-
     export_path = os.path.join(export_path, export_name)
 
     if not os.path.isdir(export_path):
         os.makedirs(export_path)
 
     mask_tree = to_mask_node(segment_manager)
-    export_process(mask_tree)
 
-    if export_detail:
+    if save_mask_tree:
+        logging.info("Saving mask tree...")
+        mask_tree.save(os.path.join(export_path, "{}_mask_tree.dat".format(export_name)))
+
+    height, width, _ = segment_manager.image.shape
+
+    polygon_tree = mask_tree.to_vector_node()
+    polygon_tree.exterior = np.array([
+        [0, 0], [0, width], [height, width], [height, 0]
+    ])
+
+    if save_vector_tree:
+        logging.info("Saving polygon tree...")
+        polygon_tree.save(os.path.join(export_path, "{}_polygon_tree.dat".format(export_name)))
+
+    if save_raster:
+        logging.info("Saving polygon raster...")
+        polygon_tree.to_raster(os.path.join(export_path, "{}_polygon_raster.png".format(export_name)))
+
+    if save_centroids:
+        logging.info("Saving polygon centroids...")
+        centroids: np.ndarray = np.array([c.get_centroid() for c in polygon_tree.children])
+        np.save(os.path.join(export_path, "{}_centroid_coordinates.npy".format(export_name)), centroids)
+
+    if save_detail_vector_tree or save_detail_mask_tree or save_detail_raster:
         logging.info("Sub-segmenting to get detail...")
         get_detail.get_detail(
             segment_manager.image / 255, mask_tree,
             segmentation.FloodFillSegmentation(min_area, tolerance, silent=True)
         )
-        export_process(mask_tree, True)
+
+        if save_detail_mask_tree:
+            logging.info("Saving detailed mask tree...")
+            mask_tree.save(os.path.join(export_path, "{}_mask_tree_detailed.dat".format(export_name)))
+
+        height, width, _ = segment_manager.image.shape
+
+        polygon_tree = mask_tree.to_vector_node()
+        polygon_tree.exterior = np.array([
+            [0, 0], [0, width], [height, width], [height, 0]
+        ])
+
+        if save_detail_vector_tree:
+            logging.info("Saving detailed polygon tree...")
+            polygon_tree.save(os.path.join(export_path, "{}_polygon_tree_detailed.dat".format(export_name)))
+
+        if save_detail_raster:
+            logging.info("Saving detailed polygon raster...")
+            polygon_tree.to_raster(os.path.join(export_path, "{}_polygon_raster_detailed.png".format(export_name)))
 
     logging.info("Copying original image to export directory...")
     _, file_ext = os.path.splitext(segment_manager.image_path)
