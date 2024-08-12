@@ -1,14 +1,13 @@
+import logging
 import os
 import shutil
-import time
 
 import numpy as np
 
-import sam_interface.segment_manager
-import vector_node
 import sam_interface.get_detail as get_detail
+import sam_interface.segment_manager
 import segmentation
-import logging
+import vector_node
 
 
 def to_flat_image(segment_manager: sam_interface.segment_manager.SegmentManager) -> np.ndarray:

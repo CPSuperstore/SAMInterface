@@ -10,10 +10,9 @@ import vector_node.vector_node as vector_node
 
 class MaskNode(base_node.BaseNode):
     def __init__(self, mask: np.ndarray, color: np.ndarray = None, level: int = 0):
-        super().__init__(level)
+        super().__init__(color, level)
         self.mask = mask
         self.filled_mask = self.fill_holes()
-        self.color = color
 
     @classmethod
     def from_image(cls, image: np.ndarray):
@@ -83,9 +82,6 @@ class MaskNode(base_node.BaseNode):
 
     def is_touching(self, mask: np.ndarray):
         return np.logical_and(self.dilate(1), mask).sum() > 0
-
-    def color_to_int(self, scale: float = 255) -> np.ndarray:
-        return (self.color * scale).astype(int)
 
     def to_dict(self) -> dict:
         result = {

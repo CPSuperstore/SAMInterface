@@ -5,10 +5,13 @@ import pickle
 import collections
 import typing
 
+import numpy as np
+
 
 class BaseNode(abc.ABC):
-    def __init__(self, level: int = 0):
+    def __init__(self, color: np.ndarray = None, level: int = 0):
         self.children: typing.List[typing.Self] = []
+        self.color = color
         self.level = level
 
     @classmethod
@@ -99,3 +102,6 @@ class BaseNode(abc.ABC):
     def to_json_file(self, filename: str):
         with open(filename, 'w') as f:
             f.write(self.to_json_string())
+
+    def color_to_int(self, scale: float = 255) -> np.ndarray:
+        return (self.color * scale).astype(int)

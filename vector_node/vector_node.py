@@ -20,13 +20,12 @@ class VectorNode(base_node.BaseNode):
     def __init__(
             self, exterior: np.ndarray, category: int = None, color: np.ndarray = None, level: int = 0
     ):
-        super().__init__(level)
+        super().__init__(color, level)
         if isinstance(exterior, list):
             exterior = np.array(exterior)
 
         self.exterior = exterior
         self.category = category
-        self.color = color
         self.synthetic: bool = False
 
     @classmethod
@@ -274,14 +273,11 @@ class VectorNode(base_node.BaseNode):
             dwg.add(
                 svgwrite.shapes.Polygon(
                     node.get_polygon_coordinate_pairs(yx=True).tolist(),
-                    fill=svgwrite.rgb(*node.color * 100, '%')
+                    fill=svgwrite.rgb(*node.color_to_int(100), '%')
                 )
             )
 
         dwg.save()
-
-    def color_to_int(self, scale: float = 255) -> np.ndarray:
-        return (self.color * scale).astype(int)
 
     def to_raster(self, filename: str):
         surface = PIL.Image.new(
