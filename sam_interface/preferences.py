@@ -10,6 +10,17 @@ DEFAULT_PREFERENCES = {
         "model_type": "default",
         "checkpoint_path": "checkpoints/sam_vit_h_4b8939.pth",
         "auto_detect_masks": True
+    },
+    "export_options": {
+        "save_mask_tree": True,
+        "save_vector_tree": True,
+        "save_raster": True,
+        "save_centroids": True,
+        "save_detail_mask_tree": True,
+        "save_detail_vector_tree": True,
+        "save_detail_raster": True,
+        "min_area": 5,
+        "tolerance": 0.05
     }
 }
 

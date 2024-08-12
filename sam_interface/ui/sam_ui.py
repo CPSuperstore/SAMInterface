@@ -97,21 +97,24 @@ class SAMWidget(pygame_widget.PygameWidget):
 
 class ExportInterface(base_top_level.BaseTopLevel):
     def __init__(self, segment_manager, master=None):
-        super().__init__(master, (500, 575), "Segmentation Exporter")
+        super().__init__(master, (500, 485), "Segmentation Exporter")
 
         config = dict(sticky='EW', pady=5, padx=10, columnspan=3)
+        prefs = preferences.get_preferences()
+        export_prefs = prefs["export_options"]
 
         customtkinter.CTkLabel(self, text="Export Segmentation").grid(row=0, column=0, **config)
 
-        self.mask_tree_variable = customtkinter.IntVar(value=1)
-        self.vector_tree_variable = customtkinter.IntVar(value=1)
-        self.save_raster_variable = customtkinter.IntVar(value=1)
-        self.save_centroids_variable = customtkinter.IntVar(value=1)
-        self.detail_mask_tree_variable = customtkinter.IntVar(value=1)
-        self.detail_polygon_tree_variable = customtkinter.IntVar(value=1)
-        self.detail_raster_variable = customtkinter.IntVar(value=1)
-        self.min_size_variable = customtkinter.IntVar(value=5)
-        self.threshold_variable = customtkinter.DoubleVar(value=0.05)
+        self.mask_tree_variable = customtkinter.IntVar(value=export_prefs["save_mask_tree"])
+        self.vector_tree_variable = customtkinter.IntVar(value=export_prefs["save_vector_tree"])
+        self.save_raster_variable = customtkinter.IntVar(value=export_prefs["save_raster"])
+        self.save_centroids_variable = customtkinter.IntVar(value=export_prefs["save_centroids"])
+        self.detail_mask_tree_variable = customtkinter.IntVar(value=export_prefs["save_detail_mask_tree"])
+        self.detail_polygon_tree_variable = customtkinter.IntVar(value=export_prefs["save_detail_vector_tree"])
+        self.detail_raster_variable = customtkinter.IntVar(value=export_prefs["save_detail_raster"])
+        self.min_size_variable = customtkinter.IntVar(value=export_prefs["min_area"])
+        self.threshold_variable = customtkinter.DoubleVar(value=export_prefs["tolerance"])
+
         self.segment_manager = segment_manager
 
         self.export_path_variable = customtkinter.StringVar()
@@ -119,7 +122,6 @@ class ExportInterface(base_top_level.BaseTopLevel):
             value=os.path.splitext(os.path.basename(self.segment_manager.image_path))[0]
         )
 
-        prefs = preferences.get_preferences()
         self.export_path_variable.set("" if prefs["last_export_dir"] is None else prefs["last_export_dir"])
 
         customtkinter.CTkCheckBox(
@@ -235,6 +237,21 @@ class ExportInterface(base_top_level.BaseTopLevel):
                 "The provided export path '{}' does not point to an existing directory!".format(path)
             )
             return
+
+        prefs = preferences.get_preferences()
+        export_prefs = prefs["export_options"]
+
+        export_prefs["save_mask_tree"] = self.mask_tree_variable.get()
+        export_prefs["save_vector_tree"] = self.vector_tree_variable.get()
+        export_prefs["save_raster"] = self.save_raster_variable.get()
+        export_prefs["save_centroids"] = self.save_centroids_variable.get()
+        export_prefs["save_detail_mask_tree"] = self.detail_mask_tree_variable.get()
+        export_prefs["save_detail_vector_tree"] = self.detail_polygon_tree_variable.get()
+        export_prefs["save_detail_raster"] = self.detail_raster_variable.get()
+        export_prefs["min_area"] = self.min_size_variable.get()
+        export_prefs["tolerance"] = self.threshold_variable.get()
+
+        preferences.save_preferences(prefs)
 
         loading_window = self.get_loading_window(self, cancel_button=True)
 
