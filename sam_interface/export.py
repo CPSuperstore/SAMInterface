@@ -51,6 +51,7 @@ def full_export(
     if save_mask_tree:
         logging.info("Saving mask tree...")
         mask_tree.save(os.path.join(export_path, "{}_mask_tree.dat".format(export_name)))
+        # mask_tree.to_json_file(os.path.join(export_path, "{}_mask.json".format(export_name)))
 
     height, width, _ = segment_manager.image.shape
 
@@ -62,6 +63,7 @@ def full_export(
     if save_vector_tree:
         logging.info("Saving polygon tree...")
         polygon_tree.save(os.path.join(export_path, "{}_polygon_tree.dat".format(export_name)))
+        polygon_tree.to_json_file(os.path.join(export_path, "{}_polygon.json".format(export_name)))
 
     if save_raster:
         logging.info("Saving polygon raster...")
@@ -82,6 +84,7 @@ def full_export(
         if save_detail_mask_tree:
             logging.info("Saving detailed mask tree...")
             mask_tree.save(os.path.join(export_path, "{}_mask_tree_detailed.dat".format(export_name)))
+            # mask_tree.to_json_file(os.path.join(export_path, "{}_mask_detailed.json".format(export_name)))
 
         height, width, _ = segment_manager.image.shape
 
@@ -93,6 +96,7 @@ def full_export(
         if save_detail_vector_tree:
             logging.info("Saving detailed polygon tree...")
             polygon_tree.save(os.path.join(export_path, "{}_polygon_tree_detailed.dat".format(export_name)))
+            polygon_tree.to_json_file(os.path.join(export_path, "{}_polygon_detailed.json".format(export_name)))
 
         if save_detail_raster:
             logging.info("Saving detailed polygon raster...")
