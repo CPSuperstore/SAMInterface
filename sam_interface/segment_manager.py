@@ -9,7 +9,7 @@ import torch
 import logging
 from segment_anything import SamPredictor, sam_model_registry, SamAutomaticMaskGenerator
 from scipy.ndimage import label
-
+import sam_interface.preferences as preferences
 import cv2
 
 
@@ -91,7 +91,7 @@ class SegmentManager:
         for other in self.masks:
             mask = np.logical_and(mask, np.logical_not(other))
 
-        if np.sum(mask) < 10:
+        if np.sum(mask) < preferences.get_preferences()["min_sam_segment"]:
             return False
 
         surf = pygame.pixelcopy.make_surface(mask.astype(int) * 255)

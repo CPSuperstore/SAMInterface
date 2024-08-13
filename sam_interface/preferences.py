@@ -21,7 +21,8 @@ DEFAULT_PREFERENCES = {
         "save_detail_raster": True,
         "min_area": 5,
         "tolerance": 0.05
-    }
+    },
+    "min_sam_segment": 10
 }
 
 
